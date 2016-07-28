@@ -1,0 +1,417 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>The Pursuit of Performance in React</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="node_modules/reveal.js/css/reveal.css">
+  <link rel="stylesheet" href="node_modules/reveal.js/css/theme/night.css">
+  <link rel="stylesheet" href="node_modules/highlightjs/styles/monokai.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section class="present">
+        <h2>The Pursuit of Performance in React</h2>
+        <p>by Nicholas Boll</p>
+      </section>
+      <section>
+        <h2>Who Am I?</h2>
+        <ul>
+          <li><a href="http://twitter.com/NicholasBoll">@NicholasBoll</a></li>
+          <li>nicholas.boll@gmail.com</li>
+          <li>I'm a Software Engineer at LogRhythm</li>
+          <li>I've been doing web development for a long time</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Performance context</h2>
+      </section>
+      <section>
+        <h2><a href="https://developers.google.com/web/tools/chrome-devtools/profile/evaluate-performance/rail">RAIL performance model</a></h2>
+        <ul>
+          <li><strong>R</strong>esponse - 100ms</li>
+          <li><strong>A</strong>nimation - 16ms</li>
+          <li><strong>I</strong>dle - 50ms</li>
+          <li><strong>L</strong>oad - 1s</li>
+        </ul>
+      </section>
+      <section>
+        <section>
+          <h2>Why React?</h2>
+          <ul>
+          <li class="fragment">Community</li>
+          <li class="fragment">Functional concepts</li>
+            <li class="fragment">NOT Speed</li>
+          </ul>
+        </section>
+        <section>
+          <img src="./img/functional-react.png">
+        </section>
+        <section>
+          <h2>Composition</h2>
+          <pre><code class="language-js">
+// components/article.js
+
+const Heading = ({ text }) => <h1>{text}</h1>;
+const Content = ({ text }) => <p>{text}</p>;
+const Article = ({ heading, content }) => (
+  <article>
+    &lt;Heading text={heading} />
+    &lt;Content text={content} />
+  </article>
+);
+
+export default Article;
+          </code></pre>
+        </section>
+        <section>
+          <h2>Higher-order Composition</h2>
+          <pre><code class="language-js">
+// containers/article.js
+
+import { connect } from 'react-redux';
+import Article from '../components/Article';
+
+export default connect(state => state)(Article);
+          </code></pre>
+        </section>
+      </section>
+      <section>
+        <h2>Understanding performance in React</h2>
+      </section>
+      <section>
+        <section>
+          <h2>Virtual DOM</h2>
+        </section>
+        <section>
+          <h2>Is DOM slow?</h2>
+          <p class="fragment">
+            <a href="https://github.com/patrick-steele-idem/morphdom">MorphDOM</a> proves it isn't
+          </p>
+        </section>
+      </section>
+      <section>
+        <section>
+          <h2>Reconciler</h2>
+        </section>
+        <section>
+          <h2>What is it?</h2>
+        </section>
+        <section>
+          <img src="./img/reconciliation.png" width="50%">
+        </section>
+        <section>
+          <h2>It has a cost:</h2>
+          <p>
+            <a href="https://jsfiddle.net/Lgfvpt86/5/">https://jsfiddle.net/Lgfvpt86/5/</a>
+          </p>
+          <iframe width="100%" height="300" src="https://jsfiddle.net/Lgfvpt86/5/embedded/result/" allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+        </section>
+        <section>
+          <h2>Initial render is fast</h2>
+        </section>
+        <section>
+          <h2>Reconciling updates can be slow</h2>
+        </section>
+      </section>
+      <section>
+        <section>
+          <h2>How does Redux help?</h2>
+        </section>
+        <section>
+          <h2>It changes the root with connect HoC</h2>
+        </section>
+        <section>
+          <img src="./img/redux_root.png">
+        </section>
+        <section>
+          <h2>Is immutability enough?</h2>
+        </section>
+        <section>
+          <p>
+            What happens if the data we're passing isn't "Smart"?
+            Or what if we need to touch something small on many
+            similar components?
+          </p>
+        </section>
+        <section>
+          <h2>Example: Table scrolling</h2>
+        </section>
+      </section>
+      <section>
+        <section>
+          <h2>Side-loading</h2>
+          <p>
+            We need to load the right data at the right level
+          </p>
+        </section>
+        <section>
+          <h2>MobX</h2>
+          <ul>
+            <li class="fragment"><a href="https://github.com/mobxjs/mobx">source</a></li>
+            <li class="fragment"><a href="https://mobxjs.github.io/mobx/getting-started.html">10 minute intro to MobX and React</a></li>
+          </ul>
+        </section>
+        <section>
+          <h2>There is a HoC for that</h2>
+          <pre><code class="language-js">
+import {observer} from 'mobx-react';
+
+const TodoView = observer(({todo}) => <div>{todo.title}</div>)
+          </code></pre>
+        </section>
+        <section>
+          <h2>What if we made everything observable?</h2>
+        </section>
+        <section>
+          <h2>...including <code>props.children?</code></h2>
+        </section>
+        <section>
+          <h2>Observable makes all props immutable references</h2>
+        </section>
+        <section>
+          <h2>No <code>shouldComponentUpdate</code></h2>
+        </section>
+        <section>
+          <h2>Observe all the things</h2>
+          <pre><code class="language-js">
+import * as React from 'react'
+import { isObservable } from 'mobx'
+import { observer } from 'mobx-react'
+
+export const mx = (Object.keys(React.DOM)
+  .reduce((tags, tag) => {
+    tags[tag] = createWrapper(tag);
+    return answer;
+  }, {}): any)
+
+function createWrapper(tag) {
+  class ReactiveClass extends React.Component {
+    static displayName = `mx.${tag}`;
+    propKeys: string[];
+    constructor(props){
+      super(props);
+      this.propKeys = Object.keys(props);
+    }
+    render() {
+      const propValues = this.propKeys
+        .reduce((answer, key) => {
+          const value = this.props[key];
+          if(isObservableArray(value)){
+            answer[key] = value.peek();
+          }
+          else if(isObservable(value) && value.get){
+            answer[key] = value.get();
+          }
+          else {
+            answer[key] = value;
+          }
+          return answer;
+        }, {});
+      return React.createElement(tag, propValues);
+    }
+  }
+  return observer(ReactiveClass);
+}
+          </code></pre>
+        </section>
+        <section>
+          <h2>Usage:</h2>
+          <pre><code class="language-js">
+import * as React from 'react'
+import { mx } from './utils/mxReact'
+
+const Heading = ({ text }) => <mx.h1>{text}</mx.h1>;
+const Content = ({ text }) => <mx.p>{text}</mx.p>;
+const Article = ({ heading, content }) => (
+  <mx.article>
+    &lt;Heading text={heading} />
+    &lt;Content text={content} />
+  </mx.article>
+);
+
+export default Article;
+          </code></pre>
+        </section>
+        <section>
+          <h2>The reconciler is fooled into thinking children references don't change</h2>
+        </section>
+      </section>
+      <section>
+        <section>
+          <h2>MobX is cool, but...</h2>
+          <ul>
+            <li class="fragment">You give up Redux</li>
+            <li class="fragment">You give up Immutability</li>
+            <li class="fragment">It favors models - we like raw data</li>
+            <li class="fragment">It isn't fast enough</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Other observable solutions?</h2>
+          <ul>
+            <li class="fragment">RxJS5 is pretty popular and does what we need</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Observables</h2>
+          <ul>
+            <li class="fragment">Think of an array of values over time</li>
+            <li class="fragment">Lazily evaluated</li>
+            <li class="fragment">Can be cached</li>
+          </ul>
+        </section>
+        <section>
+          <img src="./img/observer_pipeline.png">
+        </section>
+        <section>
+          <ul>
+            <li class="fragment">Redux store as normal - immutable state through observers</li>
+            <li class="fragment">Tie into <code>store.subscribe()</code></li>
+            <li class="fragment">Create selectors from store (filters)</li>
+            <li class="fragment">Everything else is data through <code>computedProperty</code></li>
+          </ul>
+        </section>
+        <section>
+          <h2><code>computedProperty</code></h2>
+          <pre><code class="language-js">
+// Take 1 or more observables, combine to to 1 result
+const computedProperty = (...observables) =>
+  Rx.Observable
+    .combineLatest(...observables) // combine the last value of each observable
+    .distinctUntilChanged() // only emit a value if it is different from previous
+    .cache(1) // cache the last result if anyone asks...
+          </code></pre>
+        </section>
+        <section>
+          <h2>Usage:</h2>
+          <pre><code class="language-js">
+const a$ = Rx.Observable.of(1)
+const b$ = Rx.Observable.of(2)
+
+const c$ = computedProperty(
+  a$,
+  b$,
+  (a, b) => a + b
+)
+
+c$.subscribe((c) => console.log(c)) // 3
+          </code></pre>
+        </section>
+        <section>
+          <h2><code>getValue()</code></h2>
+          <pre><code class="language-js">
+// get the last value to flow through a computed property
+// synchronous resolution of a value
+const getValue = (computedProperty) => {
+  let value
+  rxValue.subscribe((x:T) => value = x).unsubscribe()
+  return (value: any)
+}
+          </code></pre>
+        </section>
+        <section>
+            <h2>Usage:</h2>
+            <pre><code class="language-js">
+const a$ = Rx.Observable.of(1)
+const b$ = Rx.Observable.of(2)
+
+const c$ = computedProperty(
+  a$,
+  b$,
+  (a, b) => a + b
+)
+
+console.log(getValue(c$)) // 3
+            </code></pre>
+        </section>
+        <section>
+          <h2>What about events?</h2>
+          <ul>
+            <li>We keep events as callbacks</li>
+            <li>We use <code>computedProperty</code> and <code>getValue</code> together to extract values</li>
+          </ul>
+        </section>
+        <section>
+          <pre><code class="language-js">
+const list = ({ scrollTop$, onScroll }) => {
+
+  // This only gets defined once because properties are immutable pipelines
+  // that don't change references from one render to the next. No breaking
+  // pure-render
+  const onWheel = (event) => (
+    onScroll(getValue(scrollTop$) + event.wheelDeltaY)
+  )
+
+  const style$ = computeProperty(
+    scrollTop$,
+    (scrollTop) => {
+      return { transform: `transform: translate3d(0px, ${scrollTop}px, 0px);` }
+    }
+  )
+
+  return (
+    &lt;rx.div
+      class="scrollable-container"
+      onWheel={onWheel}
+      style={style$}
+    >
+      { /* reactive children */ }
+    &lt;/rx.div>
+  )
+}
+          </code></pre>
+        </section>
+        <section>
+          <p>
+            Note: What I didn't show was the reactive children - it is a bit complicated
+            to get into now, children are a <code>computedProperty</code> of observer
+            components. Ex: <code>Rx.Observable.of([ ListItem1, ListItem2 ])</code>. We have
+            a helper that takes a projection component (Ex: ListItem) and an array of indexes
+            and returns an observable of an array of projected components. Similar to <code>{ items.map((item, index) => &lt;ListItem key={index} data={item} />) }</code>
+          </p>
+        </section>
+      </section>
+      <section>
+        <h2>What do we get?</h2>
+        <ul>
+          <li>Side-loading by default</li>
+          <li>Performance by default</li>
+          <li>No wasted reconciler time (<a href="https://facebook.github.io/react/docs/perf.html">react-addons-perf</a> says nothing is wasted)</li>
+          <li>Stateless components API!</li>
+          <li>No <code>shouldComponentUpdate</code></li>
+          <li>No need for special performance tricks (pure render or direct DOM)</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Downsides?</h2>
+        <ul>
+          <li>All components are now reactive - percolates through your code</li>
+          <li>Might be harder to integrate with other HoCs</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Demo</h2>
+      </section>
+      <section>
+        <h2>Questions?</h2>
+      </section>
+    </div>
+  </div>
+  <script src="node_modules/reveal.js/lib/js/head.min.js"></script>
+  <script src="node_modules/reveal.js/js/reveal.js"></script>
+  <script src="node_modules/reveal.js/plugin/notes/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      dependencies: [
+        { src: 'node_modules/reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+      ],
+      history: true
+    });
+  </script>
+</body>
+</html>
